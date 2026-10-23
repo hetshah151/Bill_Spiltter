@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitKarle — Fair & Exact Bill Splitter</title>
+  <meta name="description" content="SplitKarle is a modern, mathematically exact group bill splitter. Zero rounding errors, cent-perfect share distribution, and persistent results.">
+  <meta property="og:title" content="SplitKarle — Fair & Exact Bill Splitter">
+  <meta property="og:description" content="Calculate fair, mathematically exact group bill splits with zero penny discrepancies.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- Header / Navigation Bar -->
+  <header class="app-header">
+    <div class="header-inner container">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">SplitKarle</span>
+          <span class="brand-tagline">ZeroCode Techfest Edition</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span class="badge-precision" title="Shares always add up 100% to the total bill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          Exact Cent Math
+        </span>
+        <button type="button" id="headerResetBtn" class="btn-ghost" title="Start a fresh calculation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          New Split
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Viewport -->
+  <main class="container main-layout">
+    <!-- Top Context Banner -->
+    <section class="hero-strip">
+      <div class="hero-content">
+        <h1 class="hero-title">Split bills fairly without rounding discrepancies.</h1>
+        <p class="hero-desc">Enter the occasion, total bill amount, and group size. SplitKarle computes each person's exact share so the total matches down to the exact paisa.</p>
+      </div>
+    </section>
+
+    <!-- Two-Column Workspace -->
+    <div class="workspace-grid">
+      <!-- Left Column: Input Form -->
+      <section class="card input-card" aria-labelledby="formHeading">
+        <div class="card-header">
+          <div class="card-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h2 id="formHeading" class="card-title">Bill Details</h2>
+            <p class="card-subtitle">Fill in the event and expense parameters</p>
+          </div>
+        </div>
+
+        <form id="splitForm" novalidate>
+          <!-- Validation Error Alert Banner -->
+          <div id="errorAlert" class="error-alert hidden" role="alert" aria-live="assertive">
+            <div class="error-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div class="error-content">
+              <span class="error-title">Validation Error</span>
+              <span id="errorMessage" class="error-text">Please provide valid bill details.</span>
+            </div>
+            <button type="button" id="dismissErrorBtn" class="error-dismiss" aria-label="Dismiss error">×</button>
+          </div>
+
+          <!-- 1. Occasion Name Field -->
+          <div class="form-group">
+            <label for="occasionInput" class="form-label">
+              <span>Occasion / Event Name</span>
+              <span class="label-hint">e.g. Dinner, Trip, Rent</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </span>
+              <input
+                type="text"
+                id="occasionInput"
+                class="form-input with-icon"
+                placeholder="e.g. Techfest Pizza Party"
+                maxlength="60"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <!-- Currency & Bill Amount Row -->
+          <div class="form-row">
+            <!-- Currency selector -->
+            <div class="form-group form-group-sm">
+              <label for="currencySelect" class="form-label">Currency</label>
+              <div class="select-wrapper">
+                <select id="currencySelect" class="form-select">
+                  <option value="₹" selected>₹ INR</option>
+                  <option value="$">$ USD</option>
+                  <option value="€">€ EUR</option>
+                  <option value="£">£ GBP</option>
+                </select>
+                <span class="select-arrow" aria-hidden="true">▾</span>
+              </div>
+            </div>
+
+            <!-- 2. Bill Amount Field -->
+            <div class="form-group form-group-flex">
+              <label for="billAmountInput" class="form-label">
+                <span>Total Bill Amount <span class="required">*</span></span>
+                <span class="label-hint">Exact amount</span>
+              </label>
+              <div class="input-wrapper">
+                <span id="currencySymbol" class="input-prefix">₹</span>
+                <input
+                  type="number"
+                  id="billAmountInput"
+                  class="form-input with-prefix"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Increment Buttons for Bill Amount -->
+          <div class="quick-helpers">
+            <span class="helpers-label">Quick add:</span>
+            <button type="button" class="btn-chip" data-add-amount="50">+50</button>
+            <button type="button" class="btn-chip" data-add-amount="100">+100</button>
+            <button type="button" class="btn-chip" data-add-amount="500">+500</button>
+            <button type="button" class="btn-chip" data-add-amount="1000">+1000</button>
+          </div>
+
+          <!-- 3. Number of People Field -->
+          <div class="form-group">
+            <label for="numPeopleInput" class="form-label">
+              <span>Number of People <span class="required">*</span></span>
+              <span class="label-hint">Who is splitting?</span>
+            </label>
+            <div class="stepper-wrapper">
+              <button type="button" id="stepDownBtn" class="stepper-btn" aria-label="Decrease people count" title="Decrease">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <input
+                type="number"
+                id="numPeopleInput"
+                class="form-input stepper-input"
+                placeholder="e.g. 4"
+                min="1"
+                step="1"
+                required
+              />
+              <button type="button" id="stepUpBtn" class="stepper-btn" aria-label="Increase people count" title="Increase">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional: Custom Names Collapsible -->
+          <div class="custom-names-section">
+            <button type="button" id="toggleNamesBtn" class="toggle-link" aria-expanded="false">
+              <span class="toggle-icon">▸</span>
+              <span>Customize member names (optional)</span>
+            </button>
+            <div id="namesContainer" class="names-list hidden">
+              <!-- Populated dynamically based on number of people -->
+            </div>
+          </div>
+
+          <!-- Actions: Calculate and Clear -->
+          <div class="form-actions">
+            <button type="submit" id="calculateBtn" class="btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="16" y1="14" x2="16" y2="14.01"></line>
+                <line x1="12" y1="14" x2="12" y2="14.01"></line>
+                <line x1="8" y1="14" x2="8" y2="14.01"></line>
+                <line x1="16" y1="18" x2="16" y2="18.01"></line>
+                <line x1="12" y1="18" x2="12" y2="18.01"></line>
+                <line x1="8" y1="18" x2="8" y2="18.01"></line>
+                <line x1="8" y1="10" x2="16" y2="10"></line>
+              </svg>
+              <span>Split Bill</span>
+            </button>
+
+            <button type="button" id="clearFormBtn" class="btn-secondary">
+              <span>Reset</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right Column: Result / Output Card -->
+      <section class="card result-card" aria-labelledby="resultHeading">
+        <!-- State A: Empty State (Default when no calculation is made) -->
+        <div id="emptyState" class="empty-state">
+          <div class="empty-graphic" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"></path>
+              <line x1="8" y1="8" x2="16" y2="8"></line>
+              <line x1="8" y1="12" x2="14" y2="12"></line>
+              <line x1="8" y1="16" x2="11" y2="16"></line>
+            </svg>
+          </div>
+          <h3 class="empty-title">Ready for Your Bill</h3>
+          <p class="empty-text">Fill in the event name, total bill, and number of people on the left, then click <strong>Split Bill</strong> to view each person's exact share.</p>
+          <div class="empty-guarantee">
+            <span class="guarantee-bullet">✓</span> Zero rounding errors
+            <span class="guarantee-bullet">✓</span> Shares sum up 100% exactly
+            <span class="guarantee-bullet">✓</span> Persists on refresh
+          </div>
+        </div>
+
+        <!-- State B: Active Result View -->
+        <div id="resultView" class="result-view hidden" aria-live="polite">
+          <!-- Receipt Header -->
+          <div class="receipt-header">
+            <div class="receipt-title-row">
+              <span class="receipt-tag" id="displayOccasion">Techfest Gathering</span>
+              <span class="receipt-date" id="displayTimestamp">Just now</span>
+            </div>
+            <h2 id="resultHeading" class="receipt-headline">Split Breakdown</h2>
+          </div>
+
+          <!-- Highlight Metric Cards -->
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label">Total Bill</span>
+              <span class="metric-value font-tabular" id="metricTotalBill">₹0.00</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Total People</span>
+              <span class="metric-value font-tabular" id="metricPeopleCount">0</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Base Share</span>
+              <span class="metric-value font-tabular" id="metricBaseShare">₹0.00</span>
+            </div>
+          </div>
+
+          <!-- Precision Proof Banner (Requirement 3: Shares add up exactly to the bill) -->
+          <div class="precision-banner" id="precisionBanner">
+            <div class="precision-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="precision-info">
+              <div class="precision-title">Mathematically Exact Reconciled Total</div>
+              <div class="precision-desc" id="precisionDescription">
+                Sum of individual shares (<span id="reconciledSum">₹0.00</span>) matches the original bill (<span id="reconciledOriginal">₹0.00</span>) with <strong>₹0.00</strong> discrepancy.
+              </div>
+            </div>
+          </div>
+
+          <!-- Share Distribution List -->
+          <div class="shares-section">
+            <div class="section-label-row">
+              <span class="section-label">Individual Shares</span>
+              <span class="section-subtext" id="remainderNotice">Exact allocation</span>
+            </div>
+
+            <div class="shares-table-container">
+              <table class="shares-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="th-member">Person</th>
+                    <th scope="col" class="th-note">Note</th>
+                    <th scope="col" class="th-amount">Exact Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="sharesTableBody">
+                  <!-- Generated via script.js -->
+                </tbody>
+                <tfoot>
+                  <tr class="total-row">
+                    <td colspan="2" class="total-label">Sum of All Shares</td>
+                    <td class="total-value font-tabular" id="tableTotalSum">₹0.00</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Action Bar: Copy to WhatsApp & Print -->
+          <div class="result-actions">
+            <button type="button" id="copyBreakdownBtn" class="btn-copy">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copyBtnText">Copy Share Breakdown</span>
+            </button>
+            <button type="button" id="printReceiptBtn" class="btn-ghost-sm" title="Print receipt or save as PDF">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Print
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Quick Competitive Features Overview Strip -->
+    <section class="features-bar">
+      <div class="feature-cell">
+        <div class="feature-bullet">01</div>
+        <div class="feature-meta">
+          <strong>Cent-Perfect Exactness</strong>
+          <span>Zero round-off discrepancies. Remainder distributed to the exact cent.</span>
+        </div>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-bullet">02</div>
+        <div class="feature-meta">
+          <strong>Instant & Smooth</strong>
+          <span>Calculate right in the browser without page reloads or layout shift.</span>
+        </div>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-bullet">03</div>
+        <div class="feature-meta">
+          <strong>Persistent State</strong>
+          <span>Reload the tab or restart the browser; your split stays preserved.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <span>SplitKarle · ZeroCode Competition Techfest</span>
+      <span>Crafted with Vanilla HTML, CSS & JavaScript</span>
+    </div>
+  </footer>
+
+  <!-- Vanilla JavaScript -->
+  <script src="./script.js"></script>
+</body>
+</html>
